@@ -6,7 +6,9 @@ import * as moment from 'moment';
 
 import { forkJoin, Observable } from 'rxjs';
 
+import { CardConfig } from 'patternfly-ng/card/basic-card/card-config';
 import { EmptyStateConfig } from 'patternfly-ng/empty-state/empty-state-config';
+import { ListConfig } from 'patternfly-ng/list/basic-list/list-config';
 
 import { Action, ActionConfig } from 'patternfly-ng/action';
 
@@ -19,6 +21,8 @@ import { PagedResponse } from '../resources/paged-response';
 import { Repository } from '../resources/repositories/repository';
 
 import { ContentService } from '../resources/content/content.service';
+
+import { CommunityDetails, DetailMessage } from './cards/survey/types';
 
 class ContentTypeCounts {
     apb: number;
@@ -58,6 +62,12 @@ export class ContentDetailComponent implements OnInit {
     showingView: string = ViewTypes.detail; // Control what's displayed on lower half of page
     metadata: object;
 
+    scoreDetailCard: CardConfig;
+
+    showQualityDetails = false;
+    showComunityDetails = false;
+    communityScoreDetails: CommunityDetails[];
+
     contentCounts: ContentTypeCounts = {
         apb: 0,
         module: 0,
@@ -66,7 +76,23 @@ export class ContentDetailComponent implements OnInit {
         role: 0,
     } as ContentTypeCounts;
 
+    qualityListConfig: ListConfig;
+
     ngOnInit() {
+        this.qualityListConfig = {
+            dblClick: false,
+            multiSelect: false,
+            selectItems: false,
+            selectionMatchProp: 'name',
+            showCheckbox: false,
+            useExpandItems: true,
+        } as ListConfig;
+
+        this.scoreDetailCard = {
+            titleBorder: true,
+            topBorder: true,
+        } as CardConfig;
+
         this.actionConfig = {
             primaryActions: [
                 {
@@ -158,6 +184,19 @@ export class ContentDetailComponent implements OnInit {
         this.router.navigate(['/search']);
     }
 
+    scoreDetailHandler(detailData: DetailMessage) {
+        if (detailData.type === 'community') {
+            this.communityScoreDetails = detailData.payload;
+            this.showComunityDetails = detailData.visible;
+        } else if (detailData.type === 'quality') {
+            this.showQualityDetails = detailData.visible;
+        }
+    }
+
+    toggleSurveyDetails(key: string) {
+        this[key] = !this[key];
+    }
+
     // private
 
     private findSelectedContent(name: String): Content {
@@ -204,7 +243,7 @@ export class ContentDetailComponent implements OnInit {
                 }
             }
             // Make it easier to access related data
-            ['platforms', 'versions', 'cloud_platforms', 'dependencies'].forEach(key => {
+            ['platforms', 'versions', 'cloud_platforms', 'task_messages', 'dependencies'].forEach(key => {
                 this.repoContent[key] = this.repoContent.summary_fields[key];
                 let hasKey = 'has' + key[0].toUpperCase() + key.substring(1);
                 hasKey = hasKey.replace(/\_(\w)/, this.toCamel);
