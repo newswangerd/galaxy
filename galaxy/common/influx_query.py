@@ -92,3 +92,30 @@ class AnalyticsWidget(object):
     def parseData(self, data):
         return "Please implement 'parseData()' on any object that " + \
             "inherits from AnalyticsWidget"
+
+
+class PieChartWidget(AnalyticsWidget):
+    col_to_count = ""
+
+    def parseData(self, data):
+        if 'series' not in data:
+            return []
+
+        cols = data['series'][0]['columns']
+        vals = data['series'][0]['values']
+        position_index = cols.index(self.col_to_count)
+
+        results = {}
+
+        for point in vals:
+            pos = str(point[position_index])
+            if pos not in results:
+                results[pos] = 1
+            else:
+                results[pos] += 1
+
+        list_results = []
+        for x in results:
+            list_results.append([x, results[x]])
+
+        return list_results

@@ -1,4 +1,4 @@
-from galaxy.common.influx_query import InfluxQuery, AnalyticsWidget
+from galaxy.common.influx_query import InfluxQuery, PieChartWidget
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import status
@@ -17,32 +17,10 @@ class SearchLinkStar(InfluxQuery):
 
 
 # Widget Definitions
-class PositionInSearch(AnalyticsWidget):
+class PositionInSearch(PieChartWidget):
     influxQuery = SearchLinkStar
     name = 'PositionInSearch'
-
-    def parseData(self, data):
-        if 'series' not in data:
-            return []
-
-        cols = data['series'][0]['columns']
-        vals = data['series'][0]['values']
-        position_index = cols.index('position_in_results')
-
-        results = {}
-
-        for point in vals:
-            pos = str(point[position_index])
-            if pos not in results:
-                results[pos] = 1
-            else:
-                results[pos] += 1
-
-        list_results = []
-        for x in results:
-            list_results.append([x, results[x]])
-
-        return list_results
+    col_to_count = 'position_in_results'
 
 
 widget_map = {
