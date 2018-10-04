@@ -19,6 +19,11 @@ from django.conf.urls import include, url
 
 from galaxy.api import views
 
+analytics_urls = [
+    url(r'^$',
+        views.AnalyticsWidgetView.as_view(), name='analytics'),
+]
+
 event_tracking_urls = [
     url(r'^influx_session/$',
         views.InfluxSession.as_view(), name='influx_session'),
@@ -276,6 +281,7 @@ v1_urls = [
     url(r'^content_blocks/', include(content_block_urls)),
     url(r'^content_types/', include(content_type_urls)),
     url(r'^community_surveys/', include(community_survey_urls)),
+    url(r'^analytics/', include(analytics_urls)),
 ]
 
 me_urls = [
