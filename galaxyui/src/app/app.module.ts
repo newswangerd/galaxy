@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 
@@ -17,6 +18,7 @@ import { NotificationService } from 'patternfly-ng';
 import { AppComponent } from './app.component';
 
 // Custom Modules
+import { AnalyticsModule } from './analytics/analytics.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AuthorsModule } from './authors/authors.module';
 import { ContentDetailModule } from './content-detail/content-detail.module';
@@ -30,6 +32,7 @@ import { UtilitiesModule } from './utilities/utilities.module';
 
 // Custom Services
 import { AuthService } from './auth/auth.service';
+import { AnalyticsService } from './resources/analytics/analytics.service';
 import { ApiRootService } from './resources/api-root/api-root.service';
 import { CloudPlatformService } from './resources/cloud-platforms/cloud-platform.service';
 import { ContentBlocksService } from './resources/content-blocks/content-blocks.service';
@@ -65,9 +68,11 @@ import { UserNotificationsComponent } from './user-notifications/user-notificati
         }),
         TooltipModule,
         BrowserModule,
+        BrowserAnimationsModule,
         VerticalNavigationModule,
         BsDropdownModule.forRoot(),
         ModalModule.forRoot(),
+        AnalyticsModule,
         HomeModule,
         LoginModule,
         PreferencesModule,
@@ -105,6 +110,7 @@ import { UserNotificationsComponent } from './user-notifications/user-notificati
         EventLoggerService,
         PreferencesService,
         UserNotificationService,
+        AnalyticsService,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     bootstrap: [AppComponent],

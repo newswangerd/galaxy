@@ -1,0 +1,24 @@
+<pfng-card [config]="widgetCard" class="col-sm-3">
+  <div *ngIf='data' class="card-content">
+    <div class="chart-box"style="height: 300px; width: 400px;">
+        <ngx-charts-pie-chart
+            *ngIf='data'
+            [results]="data.values"
+            [doughnut]='true'
+            [labels]='true'
+            [view]='[400,300]'
+            (select)='mouseOverSlice($event)'
+        ></ngx-charts-pie-chart>
+    </div>
+
+    <div class="detail">
+        <div class="detail-title">{{ selected.name }} place: {{ selected.value }} clicks</div>
+        <div class="detail-keywords">
+            Keywords associated with this rank:
+            <ul>
+                <li *ngFor="let kw of data.metadata[selected.name].keywords">{{ kw }}</li>
+            </ul>
+        </div>
+    </div>
+  </div>
+</pfng-card>
