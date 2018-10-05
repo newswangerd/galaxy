@@ -13,7 +13,18 @@ class SearchLinkStar(InfluxQuery):
     measurement = "search_click"
     selector = "*"
     conditions = "content_clicked = '{content}'"
-    # group_by = "current_component"
+
+
+class ContentButtonClicks(InfluxQuery):
+    measurement = "button_click"
+    selector = "*"
+    conditions = "current_page = '{content_page}'"
+
+
+class ContentLinkClicks(InfluxQuery):
+    measurement = "link_click"
+    selector = "*"
+    conditions = "current_page = '{content_page}'"
 
 
 # Widget Definitions
@@ -63,6 +74,7 @@ class PositionInSearch(AnalyticsWidget):
         else:
             name += 'th'
         return name
+
 
 widget_map = {
     'position_in_search': PositionInSearch,

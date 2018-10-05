@@ -1352,3 +1352,20 @@ class UserNotification(BaseModel):
     seen = models.BooleanField(
         default=False
     )
+
+
+class InfluxDataCache(BaseModel):
+    # we're using sha1 for query signatures, so we only need 40 chars.
+    signature = models.CharField(
+        unique=True,
+        db_index=True,
+        max_length=40,
+    )
+
+    widget_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=100,
+    )
+
+    data = psql_fields.JSONField()
