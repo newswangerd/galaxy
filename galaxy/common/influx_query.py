@@ -1,5 +1,7 @@
 import influxdb
 import hashlib
+import datetime
+import pytz
 from django.conf import settings
 from galaxy.main import models
 from django.core.exceptions import ObjectDoesNotExist
@@ -10,6 +12,9 @@ def compute_hash(input):
 
 
 class InfluxDataBase(object):
+    # timeout in seconds (one day)
+    cacheTimeOut = 60 * 60 * 24
+
     def checkCache(self):
         if not self.useQueryCaching:
             return False
@@ -18,6 +23,13 @@ class InfluxDataBase(object):
             cache = models.InfluxDataCache.objects.get(
                 signature=self.getSignature()
             )
+            now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+            delta = datetime.timedelta(seconds=self.cacheTimeOut)
+
+            # Reset the cache if it is out of date
+            if cache.modified < now - delta:
+                return False
+
         except ObjectDoesNotExist:
             return False
 
