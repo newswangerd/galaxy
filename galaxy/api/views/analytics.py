@@ -30,7 +30,6 @@ class ContentLinkClicks(InfluxQuery):
 # Widget Definitions
 class PositionInSearch(AnalyticsWidget):
     influxQuery = SearchLinkStar
-    name = 'PositionInSearch'
 
     def parseData(self, data):
         if 'series' not in data:
