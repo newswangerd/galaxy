@@ -8,11 +8,14 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { CardModule } from 'patternfly-ng/card/basic-card/card.module';
 
+import { SharedModule } from '../shared/shared.module';
+
 import { AnalyticsRoutingModule } from './analytics.routing.module';
+import { TopSearchQueriesComponent } from './widgets/top-search-queries/top-search-queries.component';
 
 @NgModule({
-    imports: [CardModule, CommonModule, NgxChartsModule, AnalyticsRoutingModule],
-    declarations: [PositionInSearchComponent, DashboardComponent],
-    exports: [PositionInSearchComponent, DashboardComponent],
+    imports: [CardModule, CommonModule, NgxChartsModule, AnalyticsRoutingModule, SharedModule],
+    declarations: [PositionInSearchComponent, DashboardComponent, TopSearchQueriesComponent],
+    exports: [PositionInSearchComponent, TopSearchQueriesComponent],
 })
 export class AnalyticsModule {}

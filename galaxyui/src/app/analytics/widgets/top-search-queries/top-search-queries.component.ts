@@ -5,13 +5,13 @@ import { AnalyticsService } from '../../../resources/analytics/analytics.service
 import { CardConfig } from 'patternfly-ng/card/basic-card/card-config';
 
 @Component({
-    selector: 'app-position-in-search',
-    templateUrl: './position-in-search.component.html',
-    styleUrls: ['./position-in-search.component.less'],
+    selector: 'app-top-search-queries',
+    templateUrl: './top-search-queries.component.html',
+    styleUrls: ['./top-search-queries.component.less'],
 })
-export class PositionInSearchComponent implements OnInit {
+export class TopSearchQueriesComponent implements OnInit {
     // Used to track which component is being loaded
-    componentName = 'PositionInSearchComponent';
+    componentName = 'TopSearchQueriesComponent';
 
     constructor(private analyticsService: AnalyticsService) {}
 
@@ -22,28 +22,21 @@ export class PositionInSearchComponent implements OnInit {
     range: string;
 
     data: any;
-    selected: {};
 
     widgetCard: CardConfig;
 
     ngOnInit() {
-        this.selected = [];
         this.widgetCard = {
-            title: 'Search Clicks by Rank',
+            title: 'Top Search Queries',
         } as CardConfig;
 
         const params = {
-            widget_name: 'position_in_search',
+            widget_name: 'top_keywords',
             content: this.contentName,
             range: this.range,
         };
         this.analyticsService.query(params).subscribe(result => {
             this.data = result;
-            this.selected = this.data.values[0];
         });
-    }
-
-    mouseOverSlice($event) {
-        this.selected = $event;
     }
 }

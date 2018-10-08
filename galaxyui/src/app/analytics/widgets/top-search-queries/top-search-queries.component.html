@@ -1,0 +1,8 @@
+<pfng-card [config]="widgetCard" class="col-sm-3">
+    <div *ngIf='data' class="card-content">
+        <h3>Top Keywords</h3>
+        <ol>
+            <li *ngFor="let kw of data">{{kw.keyword}}: {{kw.count}}</li>
+        </ol>
+    </div>
+</pfng-card>

@@ -75,8 +75,35 @@ class PositionInSearch(AnalyticsWidget):
         return name
 
 
+class TopKeywords(AnalyticsWidget):
+    influxQuery = SearchLinkStar
+    useQueryCaching = False
+
+    def parseData(self, data):
+        cols = data['series'][0]['columns']
+        vals = data['series'][0]['values']
+
+        keywords_index = cols.index('keywords')
+
+        result = {}
+
+        for point in vals:
+            kw = point[keywords_index]
+            if kw not in result:
+                result[kw] = 1
+            else:
+                result[kw] += 1
+
+        list_result = []
+        for x in result:
+            list_result.append({'keyword': x, 'count': result[x]})
+
+        return sorted(list_result, key=lambda k: k['count'], reverse=True)
+
+
 widget_map = {
     'position_in_search': PositionInSearch,
+    'top_keywords': TopKeywords
 }
 
 

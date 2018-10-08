@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { ActivatedRoute } from '@angular/router';
+
 @Component({
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
@@ -9,7 +11,21 @@ export class DashboardComponent implements OnInit {
     // Used to track which component is being loaded
     componentName = 'DashboardComponent';
 
-    constructor() {}
+    constructor(private route: ActivatedRoute) {}
 
-    ngOnInit() {}
+    range = '1w';
+    contentName: string;
+    pageTitle: string;
+
+    ngOnInit() {
+        this.route.queryParams.subscribe(params => {
+            if ('range' in params) {
+                this.range = params['range'];
+            }
+            if ('content' in params) {
+                this.contentName = params['content'];
+            }
+            this.pageTitle = 'Dashboard: ' + this.contentName;
+        });
+    }
 }

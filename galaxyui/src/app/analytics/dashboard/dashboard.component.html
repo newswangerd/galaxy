@@ -1,1 +1,12 @@
-<app-position-in-search contentName='ansible-network.network-engine'></app-position-in-search>
+<app-page-header [headerTitle]="pageTitle" [headerIcon]="pageIcon"></app-page-header>
+
+
+<app-position-in-search
+    [contentName]='contentName'
+    [range]='range'
+></app-position-in-search>
+
+<app-top-search-queries
+    [contentName]='contentName'
+    [range]='range'
+></app-top-search-queries>
