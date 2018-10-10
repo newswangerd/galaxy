@@ -13,6 +13,7 @@ class SearchLinkStar(InfluxQuery):
     measurement = "search_click"
     selector = "*"
     conditions = "content_clicked = '{content}'"
+    useQueryCaching = False
 
 
 class ContentButtonClicks(InfluxQuery):
@@ -30,6 +31,7 @@ class ContentLinkClicks(InfluxQuery):
 # Widget Definitions
 class PositionInSearch(AnalyticsWidget):
     influxQuery = SearchLinkStar
+    useQueryCaching = False
 
     def parseData(self, data):
         if 'series' not in data:
