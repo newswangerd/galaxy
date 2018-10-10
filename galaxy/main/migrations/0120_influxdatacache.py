@@ -10,18 +10,31 @@ import galaxy.main.mixins
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0118_influxsessionidentifier'),
+        ('main', '0119_scoring_edits_remove_contentrule'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='InfluxDataCache',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('signature', models.CharField(db_index=True, max_length=40, unique=True)),
-                ('widget_name', models.CharField(blank=True, max_length=100, null=True)),
+                ('signature', models.CharField(
+                    db_index=True,
+                    max_length=40,
+                    unique=True
+                )),
+                ('widget_name', models.CharField(
+                    blank=True,
+                    max_length=100,
+                    null=True
+                )),
                 ('data', django.contrib.postgres.fields.jsonb.JSONField()),
             ],
             options={

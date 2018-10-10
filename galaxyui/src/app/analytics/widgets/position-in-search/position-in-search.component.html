@@ -1,12 +1,12 @@
 <pfng-card [config]="widgetCard" class="col-sm-3">
   <div *ngIf='data' class="card-content">
-    <div class="chart-box"style="height: 300px; width: 400px;">
+    <div class="chart-box"style="height: 200px; width: 300px;">
         <ngx-charts-pie-chart
             *ngIf='data'
             [results]="data.values"
             [doughnut]='true'
             [labels]='true'
-            [view]='[400,300]'
+            [view]='[300,200]'
             (select)='mouseOverSlice($event)'
         ></ngx-charts-pie-chart>
     </div>

@@ -16,6 +16,7 @@ export class DashboardComponent implements OnInit {
     range = '1w';
     contentName: string;
     pageTitle: string;
+    pageIcon: 'fa fa-search';
 
     ngOnInit() {
         this.route.queryParams.subscribe(params => {
