@@ -10,7 +10,7 @@ import galaxy.main.mixins
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0119_scoring_edits_remove_contentrule'),
+        ('main', '0122_auto_20181015_1802'),
     ]
 
     operations = [
