@@ -33,6 +33,6 @@ export class ScoreBarComponent implements OnInit {
 
     // Calculates the width of the green rating bar.
     getWidthPercentage(rating: number): string {
-        return (rating / 5) * 100 + '%';
+        return (rating / this.dividend) * 100 + '%';
     }
 }

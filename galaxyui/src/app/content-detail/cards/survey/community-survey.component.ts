@@ -43,6 +43,11 @@ export class CardCommunitySurveyComponent implements OnInit {
     canSubmitSurvey = true;
     loggedIn = false;
 
+    productionUsage = {
+        total: 0,
+        used: 0,
+    };
+
     @Input()
     contentId: number;
 
@@ -149,9 +154,29 @@ export class CardCommunitySurveyComponent implements OnInit {
                     this.communitySurveys = surveys;
                     this.numberOfSurveys = this.communitySurveys.length;
                     this.loadMySurvey();
+                    this.loadProductionUsage();
                     this.loading = false;
                 });
         });
+    }
+
+    private loadProductionUsage() {
+        let total = 0;
+        let production = 0;
+        for (const survey of this.communitySurveys) {
+            if (
+                survey['used_in_production'] !== undefined &&
+                survey['used_in_production'] !== null
+            ) {
+                total += 1;
+                if (survey['used_in_production'] === 5) {
+                    production += 1;
+                }
+            }
+        }
+
+        this.productionUsage.total = total;
+        this.productionUsage.used = production;
     }
 
     // Loads the list of survey that belong to this repo
@@ -278,13 +303,9 @@ export class CardCommunitySurveyComponent implements OnInit {
             }
         });
 
+        this.loadProductionUsage();
         this.calculateCategoryScores();
         this.updateCommunityDetails();
-    }
-
-    // Calculates the width of the green rating bar.
-    getWidthPercentage(rating: number): string {
-        return (rating / 5) * 100 + '%';
     }
 
     // Sets the correct color for buttons that have been clicked or are
