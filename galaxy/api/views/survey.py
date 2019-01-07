@@ -36,7 +36,6 @@ SURVEY_FIElDS = (
     'ease_of_use',
     'does_what_it_says',
     'works_as_is',
-    'used_in_production',
 )
 
 
