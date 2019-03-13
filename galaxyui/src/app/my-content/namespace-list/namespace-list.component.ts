@@ -220,6 +220,16 @@ export class NamespaceListComponent implements OnInit {
         this.searchNamespaces();
     }
 
+    handleNewCollectionVersion($event) {
+        const namespace = this.items.find(x => x.id === $event.namespace);
+
+        console.log(namespace);
+        console.log($event);
+        console.log(this.items);
+
+        this.addContent(namespace, $event.name);
+    }
+
     // View
 
     viewSelected(currentView: ToolbarView): void {
@@ -251,9 +261,10 @@ export class NamespaceListComponent implements OnInit {
         return clonedNamespaces;
     }
 
-    private addContent(namespace: Namespace) {
+    private addContent(namespace: Namespace, collectionName?: string) {
         const initialState = {
             namespace: namespace,
+            collectionName: collectionName,
         };
         this.bsModalRef = this.modalService.show(AddContentModalComponent, {
             initialState: initialState,

@@ -12,8 +12,6 @@ import {
 import { Action } from 'patternfly-ng/action/action';
 import { ActionConfig } from 'patternfly-ng/action/action-config';
 
-import { Repository } from '../../../../../resources/repositories/repository';
-
 @Component({
     encapsulation: ViewEncapsulation.None,
     selector: 'namespace-repository-action',
@@ -28,18 +26,21 @@ export class NamespaceRepositoryActionComponent implements OnInit {
     public buttonTemplate: TemplateRef<any>;
 
     @Input()
-    set repository(data: Repository) {
+    set repository(data: any) {
         this._repository = data;
     }
 
-    get repository(): Repository {
+    get repository(): any {
         return this._repository;
     }
+
+    @Input()
+    type: string;
 
     @Output()
     handleAction = new EventEmitter<any>();
 
-    _repository: Repository;
+    _repository: any;
     actionConfig: ActionConfig;
 
     constructor() {}
@@ -53,38 +54,69 @@ export class NamespaceRepositoryActionComponent implements OnInit {
         ) {
             importing = true;
         }
-        this.actionConfig = {
-            primaryActions: [
-                {
-                    id: 'import',
-                    title: 'Import',
-                    tooltip: 'Import Repository',
-                    template: this.buttonTemplate,
-                    disabled: importing,
-                },
-            ],
-            moreActions: [
-                {
-                    id: 'delete',
-                    title: 'Delete',
-                    tooltip: 'Delete Repository',
-                },
-                {
-                    id: 'deprecate',
-                    title: 'Deprecate',
-                    tooltip: 'Deprecate this Repository',
-                    visible: !this.repository.deprecated,
-                },
-                {
-                    id: 'undeprecate',
-                    title: 'Un-Deprecate',
-                    tooltip: 'Un-Deprecate this Repository',
-                    visible: this.repository.deprecated,
-                },
-            ],
-            moreActionsDisabled: false,
-            moreActionsVisible: !importing,
-        } as ActionConfig;
+
+        if (this.type === 'repositories') {
+            this.actionConfig = {
+                primaryActions: [
+                    {
+                        id: 'import',
+                        title: 'Import',
+                        tooltip: 'Import Repository',
+                        template: this.buttonTemplate,
+                        disabled: importing,
+                    },
+                ],
+                moreActions: [
+                    {
+                        id: 'delete',
+                        title: 'Delete',
+                        tooltip: 'Delete Repository',
+                    },
+                    {
+                        id: 'deprecate',
+                        title: 'Deprecate',
+                        tooltip: 'Deprecate this Repository',
+                        visible: !this.repository.deprecated,
+                    },
+                    {
+                        id: 'undeprecate',
+                        title: 'Un-Deprecate',
+                        tooltip: 'Un-Deprecate this Repository',
+                        visible: this.repository.deprecated,
+                    },
+                ],
+                moreActionsDisabled: false,
+                moreActionsVisible: !importing,
+            } as ActionConfig;
+        } else {
+            this.actionConfig = {
+                primaryActions: [
+                    {
+                        id: 'new-version',
+                        title: 'Upload',
+                        tooltip: 'Upload New Version',
+                        template: this.buttonTemplate,
+                        disabled: importing,
+                    },
+                ],
+                moreActions: [
+                    {
+                        id: 'deprecate',
+                        title: 'Deprecate',
+                        tooltip: 'Deprecate this Collection',
+                        visible: !this.repository.deprecated,
+                    },
+                    {
+                        id: 'undeprecate',
+                        title: 'Un-Deprecate',
+                        tooltip: 'Un-Deprecate this Collection',
+                        visible: this.repository.deprecated,
+                    },
+                ],
+                moreActionsDisabled: false,
+                moreActionsVisible: !importing,
+            } as ActionConfig;
+        }
     }
 
     handleListAction($event: Action) {

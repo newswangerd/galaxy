@@ -66,7 +66,12 @@
                         </namespace-action>
                     </ng-template>
                     <ng-template #listExpandTemplate let-item="item" let-index="index">
-                        <repositories-content [namespace]="item" [contentAdded]="contentAdded" *ngIf="item.expandId === undefined"></repositories-content>
+                        <repositories-content
+                            [namespace]="item"
+                            [contentAdded]="contentAdded"
+                            (uploadCollection)="handleNewCollectionVersion($event)"
+                            *ngIf="item.expandId === undefined"
+                        ></repositories-content>
                         <owners-content [namespace]="item" *ngIf="item.expandId === 'owners'"></owners-content>
                         <provider-namespaces-content [namespace]="item" *ngIf="item.expandId === 'provider-namespaces'"></provider-namespaces-content>
                     </ng-template>

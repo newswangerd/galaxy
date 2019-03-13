@@ -1,9 +1,11 @@
 import {
     Component,
     Input,
+    Output,
     OnDestroy,
     OnInit,
     ViewEncapsulation,
+    EventEmitter,
 } from '@angular/core';
 
 import { ActionConfig } from 'patternfly-ng/action/action-config';
@@ -30,6 +32,8 @@ import { ProviderNamespace } from '../../../../resources/provider-namespaces/pro
 import { Repository as VanillaRepo } from '../../../../resources/repositories/repository';
 import { RepositoryService } from '../../../../resources/repositories/repository.service';
 import { RepositoryImportService } from '../../../../resources/repository-imports/repository-import.service';
+import { CollectionListService } from '../../../../resources/collections/collection.service';
+import { CollectionList } from '../../../../resources/collections/collection';
 
 import { AlternateNameModalComponent } from './alternate-name-modal/alternate-name-modal.component';
 
@@ -39,6 +43,7 @@ import * as moment from 'moment';
 
 class Repository extends VanillaRepo {
     expanded: boolean;
+    loading: boolean;
 }
 
 @Component({
@@ -51,6 +56,9 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
     // Used to track which component is being loaded
     componentName = 'RepositoriesContentComponent';
 
+    @Output()
+    uploadCollection = new EventEmitter<any>();
+
     @Input()
     namespace: Namespace;
 
@@ -60,7 +68,7 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
         if (state !== this._contentAdded) {
             this._contentAdded = state;
             console.log('Refreshing repositories');
-            this.refreshRepositories();
+            this.refreshContent();
         }
     }
 
@@ -69,8 +77,10 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
     }
 
     private _contentAdded: number;
-
-    items: Repository[] = [];
+    items: any = {
+        repositories: [] as Repository[],
+        collections: [] as CollectionList[],
+    };
 
     emptyStateConfig: EmptyStateConfig;
     nonEmptyStateConfig: EmptyStateConfig;
@@ -95,17 +105,19 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
     sortBy = 'name';
     toolbarConfig: ToolbarConfig;
     isAscendingSort = true;
+    contentType = 'repositories';
 
     constructor(
         private repositoryService: RepositoryService,
         private repositoryImportService: RepositoryImportService,
         private modalService: BsModalService,
+        private collectionService: CollectionListService,
     ) {
         this.modalService.onHidden.subscribe(_ => {
             if (this.bsModalRef && this.bsModalRef.content.startedImport) {
                 // Import started by AlternateNamedModalComponent
-                console.log('Refreshing repositories...');
-                this.refreshRepositories();
+                console.log('Refreshing content...');
+                this.refreshContent();
             }
         });
     }
@@ -123,7 +135,7 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
                     type: FilterType.TEXT,
                 },
             ] as FilterField[],
-            resultsCount: this.items.length,
+            resultsCount: this.items.repositories.length,
             appliedFilters: [],
         } as FilterConfig;
 
@@ -203,8 +215,9 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
 
     // Actions
 
+    // UPDATE
     handleItemAction($event): void {
-        const item = $event['item'] as Repository;
+        const item = $event['item'];
         if (item) {
             switch ($event['id']) {
                 case 'import':
@@ -222,6 +235,8 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
                 case 'undeprecate':
                     this.deprecate(false, item);
                     break;
+                case 'new-version':
+                    this.uploadCollection.emit(item);
             }
         }
     }
@@ -229,14 +244,14 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
     handlePageChange($event: PaginationEvent): void {
         if ($event.pageSize || $event.pageNumber) {
             this.loading = true;
-            this.refreshRepositories();
+            this.refreshContent();
         }
     }
 
     filterChanged($event): void {
         this.paginationConfig.pageNumber = 1;
         this.loading = true;
-        this.refreshRepositories();
+        this.refreshContent();
     }
 
     sortChanged($event: SortEvent): void {
@@ -245,17 +260,22 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
         } else {
             this.sortBy = '-' + $event.field.id;
         }
-        this.refreshRepositories();
+        this.refreshContent();
     }
 
     toggleItem(item) {
         item.expanded = !item.expanded;
     }
 
+    setTypeDisplayed(type: string) {
+        this.contentType = type;
+        this.refreshContent();
+    }
+
     // Private
 
     private deprecate(isDeprecated: boolean, repo: Repository): void {
-        repo.summary_fields.loading = true;
+        repo.loading = true;
 
         // Force angular change detection to fire by creating a new object with a
         // new reference.
@@ -263,20 +283,22 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
         repo.deprecated = isDeprecated;
 
         this.repositoryService.save(repo).subscribe(response => {
-            const itemIndex = this.items.findIndex(el => el.id === repo.id);
+            const itemIndex = this.items.repositories.findIndex(
+                el => el.id === repo.id,
+            );
             if (typeof response !== 'undefined') {
-                repo.summary_fields.loading = false;
+                repo.loading = false;
                 repo.deprecated = response.deprecated;
-                this.items[itemIndex] = repo;
+                this.items.repositories[itemIndex] = repo;
             } else {
-                this.items[itemIndex].summary_fields.loading = false;
+                this.items.repositories[itemIndex].loading = false;
             }
         });
     }
 
     private pollRepos() {
         if (this.pollingEnabled) {
-            this.refreshRepositories();
+            this.refreshContent();
         }
     }
 
@@ -287,8 +309,8 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
         });
     }
 
-    private getDetailUrl(item: Repository) {
-        return `/${item.summary_fields['namespace']['name']}/${item.name}`;
+    private getDetailUrl(item) {
+        return `/${this.namespace.name}/${item.name}`;
     }
 
     private getIconClass(repository_format: string) {
@@ -304,7 +326,7 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
         return result;
     }
 
-    private prepareRepository(item: Repository) {
+    private prepareItem(item) {
         item['expanded'] = false;
         item['latest_import'] = {};
         item['detail_url'] = this.getDetailUrl(item);
@@ -323,15 +345,25 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
         }
     }
 
-    private refreshRepositories() {
-        // Django REST framework allows us to query multiple namespaces by using
-        // provider_namespace__id__in=id1,id2,id3
-        const query = {
-            provider_namespace__id__in: '',
+    private refreshContent() {
+        let query = {
             page_size: this.paginationConfig.pageSize,
             page: this.paginationConfig.pageNumber,
         };
 
+        query = this.addQueryFilters(query);
+
+        switch (this.contentType) {
+            case 'repositories':
+                this.refreshRepositories(query);
+                break;
+            case 'collections':
+                this.refreshCollections(query);
+                break;
+        }
+    }
+
+    private addQueryFilters(query) {
         if (this.filterConfig) {
             for (const filter of this.filterConfig.appliedFilters) {
                 query[`or__${filter.field.id}__icontains`] = filter.value;
@@ -341,73 +373,96 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
             query['order_by'] = this.sortBy;
         }
 
+        return query;
+    }
+
+    private refreshCollections(query) {
+        query['namespace'] = this.namespace.id;
+
+        this.collectionService
+            .pagedQuery(query)
+            .subscribe((result: PagedResponse) => {
+                console.log(result);
+                this.handleQueryResults(result);
+            });
+    }
+
+    private refreshRepositories(query) {
+        // Django REST framework allows us to query multiple namespaces by using
+        // provider_namespace__id__in=id1,id2,id3
+
+        query['provider_namespace__id__in'] = '';
+
         this.namespace.summary_fields.provider_namespaces.forEach(
             (pns: ProviderNamespace) => {
-                query.provider_namespace__id__in += pns.id + ',';
+                query['provider_namespace__id__in'] += pns.id + ',';
             },
         );
 
-        query.provider_namespace__id__in = query.provider_namespace__id__in.slice(
-            0,
-            -1,
-        );
+        query['provider_namespace__id__in'] = query[
+            'provider_namespace__id__in'
+        ].slice(0, -1);
 
         this.repositoryService
             .pagedQuery(query)
             .subscribe((result: PagedResponse) => {
-                const repositories: Repository[] = result.results;
-
-                this.filterConfig.resultsCount = result.count;
-                this.paginationConfig.totalItems = result.count;
-
-                // maxItems is used to determine if we need to show the filter or not
-                // it should never go down to avoid hiding the filter by accident when
-                // a query returns a small number of items.
-                if (this.maxItems < this.paginationConfig.totalItems) {
-                    this.maxItems = this.paginationConfig.totalItems;
-                }
-
-                // Collect a list of expanded items to keep them from getting
-                // closed when the page refreshes.
-                const expanded = [];
-
-                this.items.forEach(item => {
-                    if (item.expanded) {
-                        expanded.push(item.id);
-                    }
-                });
-
-                // Generate a new list of repos
-                const updatedList: Repository[] = [];
-
-                // Only poll imports if there are pending imports
-                this.pollingEnabled = false;
-                repositories.forEach(repo => {
-                    if (
-                        repo.summary_fields.latest_import.state === 'PENDING' ||
-                        repo.summary_fields.latest_import.state === 'RUNNING'
-                    ) {
-                        this.pollingEnabled = true;
-                    }
-
-                    this.prepareRepository(repo);
-                    if (expanded.includes(repo.id)) {
-                        repo.expanded = true;
-                    }
-                    updatedList.push(repo);
-                });
-
-                // set the old list to the new list to avoid screen flickering
-                this.items = updatedList;
-                this.loading = false;
-
-                // Show blank screen during loads.
-                this.updateEmptyState();
+                this.handleQueryResults(result);
             });
     }
 
+    private handleQueryResults(result: PagedResponse) {
+        const items = result.results;
+
+        this.filterConfig.resultsCount = result.count;
+        this.paginationConfig.totalItems = result.count;
+
+        // maxItems is used to determine if we need to show the filter or not
+        // it should never go down to avoid hiding the filter by accident when
+        // a query returns a small number of items.
+        if (this.maxItems < this.paginationConfig.totalItems) {
+            this.maxItems = this.paginationConfig.totalItems;
+        }
+
+        // Collect a list of expanded items to keep them from getting
+        // closed when the page refreshes.
+        const expanded = [];
+
+        this.items[this.contentType].forEach(item => {
+            if (item.expanded) {
+                expanded.push(item.id);
+            }
+        });
+
+        // Generate a new list of repos
+        const updatedList = [];
+
+        // Only poll imports if there are pending imports
+        this.pollingEnabled = false;
+        items.forEach(item => {
+            if (
+                item['summary_fields'].latest_import.state === 'PENDING' ||
+                item['summary_fields'].latest_import.state === 'RUNNING'
+            ) {
+                this.pollingEnabled = true;
+            }
+
+            this.prepareItem(item);
+            if (expanded.includes(item['id'])) {
+                item.expanded = true;
+            }
+            updatedList.push(item);
+        });
+
+        // set the old list to the new list to avoid screen flickering
+        this.items[this.contentType] = updatedList;
+        this.loading = false;
+
+        // Show blank screen during loads.
+        this.updateEmptyState();
+    }
+
     private updateEmptyState(): void {
-        if (this.items.length === 0) {
+        if (this.items.repositories.length === 0) {
             this.listConfig.emptyStateConfig = this.emptyStateConfig;
         } else {
             this.listConfig.emptyStateConfig = this.nonEmptyStateConfig;
@@ -429,9 +484,9 @@ export class RepositoriesContentComponent implements OnInit, OnDestroy {
     private deleteRepository(repository: Repository) {
         this.loading = true;
         this.repositoryService.destroy(repository).subscribe(_ => {
-            this.items.forEach((item: Repository, idx: number) => {
+            this.items.repositories.forEach((item: Repository, idx: number) => {
                 if (item.id === repository.id) {
-                    this.items.splice(idx, 1);
+                    this.items.repositories.splice(idx, 1);
                     this.loading = false;
                     this.updateEmptyState();
                 }

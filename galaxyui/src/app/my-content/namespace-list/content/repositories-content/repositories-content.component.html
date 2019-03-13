@@ -1,9 +1,36 @@
-<div class="toolbar" *ngIf="maxItems > 5"
+<div class="toolbar"
     [ngClass]="{'toolbar-empty': filterConfig.appliedFilters.length === 0,
                 'toolbar-with-search': filterConfig.appliedFilters.length > 0}">
-    <pfng-toolbar [config]="toolbarConfig"
-                  (onFilterChange)="filterChanged($event)"
-                  (onSortChange)="sortChanged($event)">
+
+    <div class="content-toggle">
+        <a
+            (click)='setTypeDisplayed("collections")'
+            class="btn"
+            [ngClass]="{'btn-primary': contentType === 'collections'}"
+        >
+            Collections
+        </a>
+        <a
+            (click)='setTypeDisplayed("repositories")'
+            class="btn btn-default"
+            class="btn"
+            [ngClass]="{'btn-primary': contentType === 'repositories'}"
+        >
+            Repositories
+        </a>
+    </div>
+
+    &nbsp;
+    &nbsp;
+    &nbsp;
+    &nbsp;
+
+    <pfng-toolbar
+        [config]="toolbarConfig"
+        (onFilterChange)="filterChanged($event)"
+        (onSortChange)="sortChanged($event)"
+        *ngIf="maxItems > 5"
+    >
     </pfng-toolbar>
 </div>
 
@@ -13,14 +40,14 @@
         <pfng-list
             [actionTemplate]="actionTemplate"
             [config]="listConfig"
-            [items]="items"
+            [items]="items[contentType]"
             [itemTemplate]="itemTemplate"
             [expandTemplate]="listExpandTemplate"
             (onActionSelect)="handleAction($event, null)">
             <ng-template #itemTemplate let-item="item" let-index="index">
                 <div class="list-pf-left">
-                    <span *ngIf="!item.summary_fields.loading" [ngClass]="item['iconClass']"></span>
-                    <div *ngIf="item.summary_fields.loading" class="spinner spin-wrapper"></div>
+                    <span *ngIf="!item.loading" [ngClass]="item['iconClass']"></span>
+                    <div *ngIf="item.loading" class="spinner spin-wrapper"></div>
                 </div>
                 <div class="list-pf-content-wrapper">
                     <div class="list-pf-main-content">
@@ -37,7 +64,7 @@
                             (click)="toggleItem(item)"
                         >
                             <span class="pficon-warning-triangle-o"></span>
-                            <span class="warning-link"> Show Warnings</span>
+                            <span class="warning-link"> Show Warnings &nbsp;</span>
                         </div>
 
 
@@ -46,19 +73,19 @@
                                 tooltip="View import log">
                                 <i class="fa fa-spin fa-spinner"></i>
                                 <span class="text">{{ item['latest_import']['state'][0] + item['latest_import']['state'].substring(1, item['latest_import']['state'].length).toLowerCase() }}
-                                {{ item['latest_import']['as_of_dt'] }}</span>
+                                {{ item['latest_import']['as_of_dt'] }} &nbsp;</span>
                             </a>
                         </div>
                         <div *ngIf="item['latest_import'] && item['latest_import']['state'] === 'SUCCESS'">
                             <a [routerLink]="['/my-imports']" [queryParams]="{namespace: namespace.name, repository_name: item.name}" class="succeeded"
                                 tooltip="View import log">
-                                <i class="fa fa-circle"></i> <span class="text">Succeeded {{ item['latest_import']['as_of_dt'] }}</span>
+                                <i class="fa fa-circle"></i> <span class="text">Succeeded {{ item['latest_import']['as_of_dt'] }} &nbsp;</span>
                             </a>
                         </div>
                         <div *ngIf="item['latest_import'] && item['latest_import']['state'] === 'FAILED'">
                             <a [routerLink]="['/my-imports']" [queryParams]="{namespace: namespace.name, repository_name: item.name}" class="failed"
                                 tooltip="View import log">
-                                <i class="fa fa-circle"></i> <span class="text">Failed {{ item['latest_import']['as_of_dt'] }}</span>
+                                <i class="fa fa-circle"></i> <span class="text">Failed {{ item['latest_import']['as_of_dt'] }} &nbsp;</span>
                             </a>
                         </div>
                     </div>
@@ -69,6 +96,7 @@
             <ng-template #actionTemplate let-item="item" let-index="index">
                 <namespace-repository-action
                     [repository]="item"
+                    [type]="contentType"
                     (handleAction)="handleItemAction($event)">
                 </namespace-repository-action>
             </ng-template>
